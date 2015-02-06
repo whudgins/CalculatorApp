@@ -12,8 +12,8 @@ class ViewController: UIViewController {
 
     @IBOutlet weak var display: UILabel!
     
+    var brain = CalculatorBrain()
     var userIsInTheMiddleOfTypingANumber: Bool = false
-    var operandStack = Array<Double>()
     var displayValue: Double {
         get {
             return NSNumberFormatter().numberFromString(display.text!)!.doubleValue
@@ -29,28 +29,14 @@ class ViewController: UIViewController {
         if userIsInTheMiddleOfTypingANumber {
             enter()
         }
-        switch operation {
-            case "×": performOperation {$0 * $1}
-            case "÷": performOperation {$1 / $0}
-            case "+": performOperation {$0 + $1}
-            case "−": performOperation {$1 - $0}
-            case "√": performOperation {sqrt($0)}
-            default: break
+        if let operation = sender.currentTitle {
+            if let result = brain.performOperation(operation) {
+                displayValue = result
+            } else {
+                displayValue = 0
+            }
         }
-    }
-    
-    func performOperation(operation: (Double, Double) -> Double) {
-        if operandStack.count >= 2 {
-            displayValue = operation(operandStack.removeLast(), operandStack.removeLast())
-            enter()
-        }
-    }
-    
-    func performOperation(operation: Double -> Double) {
-        if operandStack.count >= 1 {
-            displayValue = operation(operandStack.removeLast())
-            enter()
-        }
+
     }
     
     @IBAction func clearDisplay() {
@@ -61,13 +47,15 @@ class ViewController: UIViewController {
 
     @IBAction func enter() {
         userIsInTheMiddleOfTypingANumber = false
-        operandStack.append(displayValue)
-        println("operandStack =  \(operandStack)")
+        if let result = brain.pushOperand(displayValue) {
+            displayValue = result
+        } else {
+            
+        }
     }
     
     @IBAction func appendDigit(sender: UIButton) {
         let digit = sender.currentTitle!
-        println("digit = \(digit)")
         var displayIsZero: Bool = false
         if display.text! == "0" {
             displayIsZero = true
